@@ -1,11 +1,12 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
-import { ArrowLeft, Camera, CameraOff, Play, Square, Loader2, AlertTriangle, Gauge, Check } from "lucide-react";
+import { ArrowLeft, Camera, CameraOff, Play, Square, Loader2, AlertTriangle, Gauge, Check, Target, Trophy } from "lucide-react";
 import { useApp } from "@/context/AppContext";
 import { EXERCISES, evaluatePose, displayName } from "@/lib/exercises";
 import { getPoseLandmarker, POSE_CONNECTIONS } from "@/lib/pose";
 import { sound } from "@/lib/audio";
+import { speech } from "@/lib/speech";
 import { ProgressRing } from "@/components/ProgressRing";
 import { ExerciseDemo } from "@/components/ExerciseDemo";
 import { Button } from "@/components/ui/button";
@@ -29,7 +30,16 @@ export default function CameraCoach() {
   const holdRef = useRef(0);
   const lastFrameRef = useRef(performance.now());
   const soundRef = useRef(settings.sound);
+  const voiceRef = useRef(settings.voice);
+  const smoothProgRef = useRef(0);
+  const maxProgRef = useRef(0);
+  const lastRepAtRef = useRef(0);
+  const visibleFramesRef = useRef(0);
+  const prevVisibleRef = useRef(true);
+  const targetRef = useRef(null);
+  const targetReachedRef = useRef(false);
   useEffect(() => { soundRef.current = settings.sound; }, [settings.sound]);
+  useEffect(() => { voiceRef.current = settings.voice; }, [settings.voice]);
 
   const [status, setStatus] = useState("idle"); // idle | loading | running | error
   const [errorMsg, setErrorMsg] = useState("");
@@ -44,6 +54,20 @@ export default function CameraCoach() {
   const [flash, setFlash] = useState(false);
 
   const isTimed = exercise.type === "timed";
+
+  const [target, setTarget] = useState(null);
+  const [targetReached, setTargetReached] = useState(false);
+  useEffect(() => { targetRef.current = target; }, [target]);
+
+  const celebrate = useCallback((count) => {
+    targetReachedRef.current = true;
+    setTargetReached(true);
+    setFlash(true);
+    setTimeout(() => setFlash(false), 600);
+    sound.finish(soundRef.current);
+    if (voiceRef.current) speech.speak(`Target reached! ${count} ${isTimed ? "seconds" : "reps"}. Beast mode!`, { priority: true });
+    toast.success("🎯 Target smashed!", { description: `${count} ${isTimed ? "sec hold" : "reps"} — goal reached!` });
+  }, [isTimed]);
 
   const drawSkeleton = useCallback((ctx, lm, w, h, ok) => {
     const color = ok ? "#00f3ff" : "#ffb020";
@@ -97,28 +121,54 @@ export default function CameraCoach() {
         setCue(s.cue);
 
         if (!s.visible) {
+          visibleFramesRef.current = 0;
           setPhase("PAUSED");
-        } else if (isTimed) {
-          // accumulate hold time
-          const dt = (now - lastFrameRef.current) / 1000;
-          holdRef.current += Math.min(dt, 0.2);
-          setHold(Math.floor(holdRef.current));
-          setPhase("HOLD");
+          if (prevVisibleRef.current && voiceRef.current) speech.speak("Step back, get your full body in view", { priority: true });
+          prevVisibleRef.current = false;
         } else {
-          if (s.active && !wentActiveRef.current) {
-            wentActiveRef.current = true;
-            setPhase(exercise.activeLabel);
-            sound.phase(soundRef.current);
-          } else if (s.rest && wentActiveRef.current) {
-            wentActiveRef.current = false;
-            repsRef.current += 1;
-            setReps(repsRef.current);
-            setPhase(exercise.restLabel);
-            sound.rep(soundRef.current);
-            setFlash(true);
-            setTimeout(() => setFlash(false), 500);
-          } else if (!s.active && !s.rest) {
-            setPhase("MOVE");
+          prevVisibleRef.current = true;
+          visibleFramesRef.current += 1;
+          const settled = visibleFramesRef.current > 3;
+          if (isTimed) {
+            const dt = (now - lastFrameRef.current) / 1000;
+            holdRef.current += Math.min(dt, 0.2);
+            const secs = Math.floor(holdRef.current);
+            setHold(secs);
+            setPhase("HOLD");
+            if (targetRef.current && !targetReachedRef.current && secs >= targetRef.current) celebrate(secs);
+          } else if (settled) {
+            // Smooth the depth signal (EMA) for stability in poor lighting.
+            smoothProgRef.current += 0.35 * (s.progress - smoothProgRef.current);
+            const sp = smoothProgRef.current;
+            if (sp > 0.8) {
+              if (!wentActiveRef.current) {
+                wentActiveRef.current = true;
+                setPhase(exercise.activeLabel);
+                sound.phase(soundRef.current);
+              }
+              maxProgRef.current = Math.max(maxProgRef.current, sp);
+            } else if (sp < 0.25) {
+              if (wentActiveRef.current) {
+                wentActiveRef.current = false;
+                const goodDepth = maxProgRef.current >= 0.8; // full range of motion
+                const cooled = now - lastRepAtRef.current > 400; // debounce double-counts
+                maxProgRef.current = 0;
+                setPhase(exercise.restLabel);
+                if (goodDepth && cooled) {
+                  lastRepAtRef.current = now;
+                  repsRef.current += 1;
+                  const r = repsRef.current;
+                  setReps(r);
+                  sound.rep(soundRef.current);
+                  setFlash(true);
+                  setTimeout(() => setFlash(false), 500);
+                  if (voiceRef.current) speech.speak(r % 5 === 0 ? `${r}, keep going` : `${r}`);
+                  if (targetRef.current && !targetReachedRef.current && r >= targetRef.current) celebrate(r);
+                }
+              }
+            } else {
+              setPhase("MOVE");
+            }
           }
         }
       } else {
@@ -132,11 +182,18 @@ export default function CameraCoach() {
       lastFrameRef.current = now;
     }
     rafRef.current = requestAnimationFrame(loop);
-  }, [exercise, drawSkeleton, isTimed]);
+  }, [exercise, drawSkeleton, isTimed, celebrate]);
 
   const start = async () => {
     setStatus("loading");
     setErrorMsg("");
+    repsRef.current = 0; setReps(0);
+    holdRef.current = 0; setHold(0);
+    wentActiveRef.current = false;
+    smoothProgRef.current = 0; maxProgRef.current = 0;
+    lastRepAtRef.current = 0; visibleFramesRef.current = 0;
+    prevVisibleRef.current = true;
+    targetReachedRef.current = false; setTargetReached(false);
     try {
       await getPoseLandmarker();
       const stream = await navigator.mediaDevices.getUserMedia({
@@ -166,6 +223,7 @@ export default function CameraCoach() {
 
   const stopStream = useCallback(() => {
     cancelAnimationFrame(rafRef.current);
+    speech.cancel();
     if (streamRef.current) {
       streamRef.current.getTracks().forEach((t) => t.stop());
       streamRef.current = null;
@@ -183,6 +241,7 @@ export default function CameraCoach() {
         count,
       });
       sound.finish(soundRef.current);
+      if (voiceRef.current) speech.speak(`Workout complete. ${count} ${isTimed ? "seconds held" : "reps"}. Nice work!`, { priority: true });
       toast.success("Workout logged to localStorage", {
         description: `${displayName(exercise, profile)} — ${count} ${isTimed ? "sec hold" : "reps"}`,
       });
@@ -224,6 +283,27 @@ export default function CameraCoach() {
                     <p className="max-w-md text-sm text-slate-400">
                       The pose model loads once from CDN, then runs fully on-device. No frames ever leave this browser.
                     </p>
+                    <div className="flex flex-col items-center gap-2">
+                      <span className="flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.2em] text-slate-500">
+                        <Target className="h-3 w-3 text-[#00f3ff]" /> Session Goal {isTimed ? "(seconds)" : "(reps)"}
+                      </span>
+                      <div className="flex gap-2">
+                        {(isTimed ? [null, 30, 45, 60] : [null, 10, 20, 30]).map((t) => (
+                          <button
+                            key={String(t)}
+                            onClick={() => setTarget(t)}
+                            data-testid={`target-${t ?? "free"}`}
+                            className={`rounded-md border px-3.5 py-1.5 text-sm font-bold transition-all ${
+                              target === t
+                                ? "border-[#00f3ff]/60 bg-[#00f3ff]/10 text-[#00f3ff] glow-cyan"
+                                : "border-white/10 text-slate-300 hover:border-white/25"
+                            }`}
+                          >
+                            {t ? (isTimed ? `${t}s` : t) : "Free"}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
                     <Button onClick={start} data-testid="start-camera-button"
                       className="h-12 bg-[#00f3ff] text-black font-bold uppercase tracking-wide hover:bg-[#00f3ff]/85 glow-cyan">
                       <Camera className="mr-1 h-5 w-5" /> Start Camera Coach
@@ -287,9 +367,19 @@ export default function CameraCoach() {
                   <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-500">
                     {isTimed ? "Hold" : "Reps"}
                   </p>
-                  <p data-testid="rep-counter-display" className={`font-mono text-5xl font-black tracking-tighter text-[#00f3ff] ${flash ? "animate-rep-pop" : ""}`}>
-                    {isTimed ? `${hold}s` : reps}
-                  </p>
+                  <div className="flex items-end gap-1.5">
+                    <p data-testid="rep-counter-display" className={`font-mono text-5xl font-black tracking-tighter ${targetReached ? "text-[#10b981]" : "text-[#00f3ff]"} ${flash ? "animate-rep-pop" : ""}`}>
+                      {isTimed ? `${hold}s` : reps}
+                    </p>
+                    {target && (
+                      <span className="mb-1.5 font-mono text-lg text-slate-500">/ {isTimed ? `${target}s` : target}</span>
+                    )}
+                  </div>
+                  {targetReached && (
+                    <span data-testid="target-reached" className="flex items-center gap-1 font-mono text-[10px] uppercase tracking-[0.15em] text-[#10b981]">
+                      <Trophy className="h-3 w-3" /> Goal reached
+                    </span>
+                  )}
                 </div>
 
                 {/* cue banner bottom-center */}

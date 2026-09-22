@@ -1,7 +1,7 @@
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { Settings as SettingsIcon, Volume2, Save, Trash2, RotateCcw } from "lucide-react";
+import { Settings as SettingsIcon, Volume2, Mic, Save, Trash2, RotateCcw, Download, Upload } from "lucide-react";
 import { useApp } from "@/context/AppContext";
 import { GOALS, EQUIPMENT } from "@/lib/exercises";
 import { Input } from "@/components/ui/input";
@@ -14,8 +14,9 @@ import {
 } from "@/components/ui/alert-dialog";
 
 export default function Settings() {
-  const { profile, settings, setProfile, setSetting, clearHistory, resetApp } = useApp();
+  const { profile, history, settings, setProfile, setSetting, clearHistory, resetApp, replaceAll } = useApp();
   const navigate = useNavigate();
+  const fileRef = useRef(null);
   const [age, setAge] = useState(profile?.age || 20);
   const [goal, setGoal] = useState(profile?.goal || "strength");
   const [equipment, setEquipment] = useState(profile?.equipment || "none");
@@ -24,6 +25,35 @@ export default function Settings() {
   const save = () => {
     setProfile({ age: Number(age) || 20, goal, equipment, lowImpact });
     toast.success("Profile updated", { description: "Recommendations refreshed." });
+  };
+
+  const doExport = () => {
+    const blob = new Blob([JSON.stringify({ profile, history, settings }, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `bits-in-motion-${new Date().toISOString().slice(0, 10)}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast.success("Workout data exported", { description: `${history.length} session${history.length !== 1 ? "s" : ""} saved to file` });
+  };
+
+  const doImport = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        const parsed = JSON.parse(reader.result);
+        if (!parsed || typeof parsed !== "object" || !Array.isArray(parsed.history)) throw new Error("bad");
+        replaceAll(parsed);
+        toast.success("Workout data imported", { description: `${parsed.history.length} session${parsed.history.length !== 1 ? "s" : ""} restored` });
+      } catch {
+        toast.error("Invalid backup file", { description: "Please pick a BITS in Motion export JSON." });
+      }
+    };
+    reader.readAsText(file);
+    e.target.value = "";
   };
 
   return (
@@ -93,10 +123,38 @@ export default function Settings() {
             className="data-[state=checked]:bg-[#00f3ff]" />
         </div>
 
+        <div className="flex items-center justify-between rounded-md border border-white/10 bg-[#101014] p-4">
+          <div className="flex items-center gap-2">
+            <Mic className="h-4 w-4 text-[#00f3ff]" />
+            <div>
+              <p className="font-semibold text-slate-200">Spoken Coach</p>
+              <p className="text-[12px] text-slate-500">Calls your reps and cues out loud during sessions.</p>
+            </div>
+          </div>
+          <Switch checked={settings.voice} onCheckedChange={(v) => setSetting("voice", v)} data-testid="settings-voice-toggle"
+            className="data-[state=checked]:bg-[#00f3ff]" />
+        </div>
+
         <Button onClick={save} data-testid="settings-save"
           className="w-full h-11 bg-[#00f3ff] text-black font-bold uppercase tracking-wide hover:bg-[#00f3ff]/85 glow-cyan">
           <Save className="mr-1 h-4 w-4" /> Save Profile
         </Button>
+      </div>
+
+      <div className="hud-card p-6 mt-5">
+        <h3 className="text-xl font-bold uppercase tracking-tight text-slate-200">Backup & Restore</h3>
+        <p className="mt-1 text-sm text-slate-500">Your data lives only in this browser. Export a copy or restore one on any device.</p>
+        <div className="mt-4 grid sm:grid-cols-2 gap-3">
+          <Button onClick={doExport} data-testid="export-data-btn"
+            className="bg-[#00f3ff] text-black font-bold uppercase tracking-wide hover:bg-[#00f3ff]/85 glow-cyan">
+            <Download className="mr-1 h-4 w-4" /> Export JSON
+          </Button>
+          <Button onClick={() => fileRef.current?.click()} data-testid="import-data-btn" variant="outline"
+            className="border-[#00f3ff]/40 text-[#00f3ff] hover:bg-[#00f3ff]/10">
+            <Upload className="mr-1 h-4 w-4" /> Import JSON
+          </Button>
+          <input ref={fileRef} type="file" accept="application/json" onChange={doImport} className="hidden" data-testid="import-file-input" />
+        </div>
       </div>
 
       <div className="hud-card p-6 mt-5">

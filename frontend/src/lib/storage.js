@@ -3,7 +3,7 @@ const KEY = "bits_in_motion_data";
 const defaultData = () => ({
   profile: null,
   history: [],
-  settings: { sound: true },
+  settings: { sound: true, voice: false },
 });
 
 export function loadData() {

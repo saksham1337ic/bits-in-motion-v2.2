@@ -25,6 +25,14 @@ export function AppProvider({ children }) {
 
   const resetApp = () => setData(defaultData());
 
+  const replaceAll = (next) =>
+    setData({
+      ...defaultData(),
+      profile: next.profile ?? null,
+      history: Array.isArray(next.history) ? next.history : [],
+      settings: { ...defaultData().settings, ...(next.settings || {}) },
+    });
+
   const setSetting = (key, value) =>
     setData((d) => ({ ...d, settings: { ...d.settings, [key]: value } }));
 
@@ -36,6 +44,7 @@ export function AppProvider({ children }) {
     addWorkout,
     clearHistory,
     resetApp,
+    replaceAll,
     setSetting,
   };
 
