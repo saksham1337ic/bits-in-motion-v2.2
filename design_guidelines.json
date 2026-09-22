@@ -1,0 +1,145 @@
+{
+  "project_name": "BITS in Motion",
+  "archetype": "Cyber-Athletic Performance Pro (Dark Mode)",
+  "app_type": "saas_fitness_dashboard",
+  "theme_mode": "dark_primary_with_high_contrast",
+  "typography": {
+    "font_family_heading": "'Barlow Condensed', 'Outfit', -apple-system, sans-serif",
+    "font_family_body": "'Inter', 'IBM Plex Sans', -apple-system, sans-serif",
+    "font_family_mono": "'JetBrains Mono', 'Roboto Mono', monospace",
+    "rules": {
+      "h1": "text-4xl sm:text-5xl lg:text-6xl font-black uppercase tracking-tight leading-none text-slate-100",
+      "h2": "text-2xl sm:text-3xl lg:text-4xl font-extrabold uppercase tracking-tight text-slate-100",
+      "h3": "text-xl sm:text-2xl font-bold uppercase tracking-tight text-slate-200",
+      "h4": "text-lg sm:text-xl font-bold tracking-tight text-slate-200",
+      "body": "text-sm sm:text-base font-normal leading-relaxed text-slate-300",
+      "overline": "text-xs font-mono uppercase tracking-[0.2em] text-[#00f3ff]",
+      "hud_metric": "font-mono font-black text-3xl sm:text-4xl tracking-tighter text-[#00f3ff]"
+    }
+  },
+  "colors": {
+    "background": {
+      "main": "#121212",
+      "surface_elevated": "#18181b",
+      "surface_card": "#1e1e24",
+      "surface_card_hover": "#262630",
+      "surface_glass": "rgba(18, 18, 18, 0.88)"
+    },
+    "accents": {
+      "primary_neon_cyan": "#00f3ff",
+      "primary_cyan_glow": "rgba(0, 243, 255, 0.25)",
+      "primary_cyan_dim": "rgba(0, 243, 255, 0.12)",
+      "electric_amber": "#ffb020",
+      "performance_emerald": "#10b981",
+      "tactical_crimson": "#ff3b30"
+    },
+    "text": {
+      "primary": "#f8fafc",
+      "secondary": "#94a3b8",
+      "muted": "#64748b",
+      "neon_highlight": "#00f3ff"
+    },
+    "borders": {
+      "subtle": "#27272a",
+      "active_neon": "rgba(0, 243, 255, 0.6)",
+      "hud_divider": "rgba(255, 255, 255, 0.08)"
+    }
+  },
+  "layout_architecture": {
+    "dashboard_mode": "MODE B: High Density Command Center (3-Column Layout)",
+    "columns_breakdown": {
+      "col_left_profile_and_history": "col-span-12 lg:col-span-3 flex flex-col gap-6",
+      "col_center_stage_and_coach": "col-span-12 lg:col-span-6 flex flex-col gap-6",
+      "col_right_analytics_and_library": "col-span-12 lg:col-span-3 flex flex-col gap-6"
+    },
+    "spacing_philosophy": "Tactical dense spacing (gap-5, p-5 to p-6) with crisp 1px borders, avoiding fluffy bloated margins.",
+    "border_radius": "rounded-lg or rounded-md (max 8px) to preserve military/tactical precision"
+  },
+  "visual_enhancers": {
+    "procedural_svg_progress_rings": {
+      "concept": "Mathematical circular HUD rings with stroke-dasharray and stroke-dashoffset transitions, neon cyan glow filter, and tick marks around 360 degrees.",
+      "implementation": "SVG with r=42, circumference=263.89, gradient stroke from #00f3ff to #38bdf8, feDropShadow or drop-shadow-[0_0_12px_rgba(0,243,255,0.4)]."
+    },
+    "tactical_scanline_overlay": "Optional subtle background radial glow with 1px isometric grid pattern (rgba(0,243,255,0.03)) to simulate an athletic HUD monitor.",
+    "human_demo_components": "Looping SVG vector athlete rigging and frame-by-frame exercise demo animations rather than heavy 3D canvases, keeping performance at 60 FPS on student hostel laptops."
+  },
+  "ai_camera_coach_spec": {
+    "library": "@mediapipe/tasks-vision",
+    "wasm_cdn": "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm",
+    "model_asset": "pose_landmarker_lite.task",
+    "privacy_first_guarantee": "100% Client-side execution in WebGL/WASM. Zero video frames sent across network.",
+    "state_machine_rules": {
+      "squat": {
+        "joint_points": "hip (23/24), knee (25/26), ankle (27/28)",
+        "phase_up": "angle > 155 deg",
+        "phase_down": "angle < 95 deg",
+        "rep_trigger": "DOWN -> UP transition with complete depth",
+        "form_cues": {
+          "too_shallow": "Chest up! Sink lower to parallel (<95°)",
+          "good_depth": "Locked depth! Power drive upward",
+          "knee_valgus": "Keep knees pushed over toes"
+        }
+      },
+      "pushup": {
+        "joint_points": "shoulder (11/12), elbow (13/14), wrist (15/16)",
+        "phase_up": "angle > 155 deg",
+        "phase_down": "angle < 85 deg",
+        "rep_trigger": "INFLECTION at bottom -> full lockout at top",
+        "form_cues": {
+          "half_rep": "Lower chest closer to floor (<85°)",
+          "perfect_lock": "Clean rep! Core tight",
+          "sagging_hips": "Brace core; avoid arched lower back"
+        }
+      }
+    },
+    "visibility_gating": {
+      "threshold": 0.65,
+      "warning_ui": "HUD message 'Step back: full body keypoints not visible' with glowing amber warning badge"
+    },
+    "hud_overlay_elements": [
+      "Real-time Joint Angle readout gauge (Degrees & Arc indicator)",
+      "Current Rep Counter in massive Cyber-Cyan font",
+      "Dynamic Phase Badge (UP / INFLECTION / DOWN)",
+      "Real-time Form Feedback Banner (Instant Audio/Chime beep & Neon Flash)",
+      "FPS & Inference Latency Monitor (Tech telemetry)"
+    ]
+  },
+  "hostel_onboarding_and_filter": {
+    "parameters": [
+      { "id": "age", "label": "Age", "type": "number", "default": 20 },
+      { "id": "goal", "label": "Primary Objective", "type": "select", "options": ["Hostel Room Hypertrophy", "Endurance & Exam Stamina", "Fat Burn & Agility", "Joint Longevity & Posture"] },
+      { "id": "equipment", "label": "Available Gear", "type": "radio", "options": ["Pure Bodyweight (Zero Gear)", "Heavy Backpack / Water Bottles", "Resistance Band"] },
+      { "id": "low_impact", "label": "Low-Impact Hostel Quiet Mode", "type": "toggle", "description": "Eliminates jumps to prevent floor vibration & roomie annoyance (Swaps Jump Squats -> Tempo Air Squats, Burpees -> Pushup-to-Plank hold)." }
+    ]
+  },
+  "image_urls": [
+    {
+      "category": "Hero Motivation / Athlete Card",
+      "image_url": "https://images.unsplash.com/photo-1550345332-09e3ac987658?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA1ODh8MHwxfHNlYXJjaHwzfHxhdGhsZXRlJTIwdHJhaW5pbmclMjBneW0lMjBkYXJrfGVufDB8fHx8MTc5MDA4ODk4N3ww&ixlib=rb-4.1.0&q=85",
+      "description": "High contrast dark athletic training portrait, perfect for athlete user profile banner or Command Center top stat card"
+    },
+    {
+      "category": "Workout Demo Reference - Squat Form",
+      "image_url": "https://images.unsplash.com/photo-1574680178050-55c6a6a96e0a?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2Nzh8MHwxfHNlYXJjaHwzfHxmaXRuZXNzJTIwd29ya291dCUyMHNxdWF0JTIwcHVzaHVwfGVufDB8fHx8MTc5MDA4ODk4N3ww&ixlib=rb-4.1.0&q=85",
+      "description": "Athlete performing heavy squat with strict posture, used for exercise card tutorial and depth reference"
+    },
+    {
+      "category": "Workout Demo Reference - Pushup & Floor Work",
+      "image_url": "https://images.pexels.com/photos/14623737/pexels-photo-14623737.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+      "description": "Athletes performing disciplined pushups, used in pushup exercise preview & joint angle calibration card"
+    },
+    {
+      "category": "High Energy Campus Training Motivation",
+      "image_url": "https://images.unsplash.com/photo-1517836357463-d25dfeac3438?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA1ODh8MHwxfHNlYXJjaHwxfHxhdGhsZXRlJTIwdHJhaW5pbmclMjBneW0lMjBkYXJrfGVufDB8fHx8MTc5MDA4ODk4N3ww&ixlib=rb-4.1.0&q=85",
+      "description": "Dark moody gym barbell grip before training, used for Workout Complete modal celebration backdrop"
+    }
+  ],
+  "UNIVERSAL GUIDELINES FOR MAIN AGENT": {
+    "testing_attributes": "All interactive buttons, selectors, tabs, inputs, camera triggers, and count displays MUST have kebab-case data-testid attributes (e.g., data-testid='start-camera-button', data-testid='rep-counter-display', data-testid='exercise-select-squat', data-testid='low-impact-toggle', data-testid='save-workout-btn').",
+    "zero_transparent_containers": "Every header, modal, card, dropdown, and HUD overlay MUST use solid or saturated dark glass backgrounds (e.g., bg-[#121212]/95 backdrop-blur-md with border border-white/10). No raw transparent containers over moving video or feeds.",
+    "state_persistence": "Workout history, rep logs, personal records, and user questionnaire settings MUST persist safely to browser localStorage under 'bits_in_motion_data' with automatic fallbacks for mock initial state.",
+    "pure_client_side": "No backend dependency. Camera inference runs strictly client-side via Web Workers / MediaPipe Pose Landmarker or lightweight mock simulation fallback if webcam permission is denied or device camera is unavailable.",
+    "sound_and_haptics": "Provide optional Web Audio API synthetic beeps (high beep on valid rep count, soft click on phase change) with a mute toggle in the Command Center top bar.",
+    "toast_notifications": "Use sonner for notifications (e.g., 'Rep Target Reached!', 'Workout Logged to LocalStorage', 'Camera Form Gating Active')."
+  }
+}
