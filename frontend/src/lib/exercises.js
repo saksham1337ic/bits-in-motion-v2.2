@@ -73,6 +73,18 @@ export function recommendedExercises(profile, limit = 6) {
       e.goals.includes(goal) &&
       (e.gear === "none" || (e.gear === "backpack" && backpack))
   );
+  if (backpack) {
+    // Interleave backpack-first so weighted variants always surface in the top slots.
+    const bp = list.filter((e) => e.gear === "backpack");
+    const bw = list.filter((e) => e.gear === "none");
+    const inter = [];
+    const n = Math.max(bp.length, bw.length);
+    for (let i = 0; i < n; i++) {
+      if (bp[i]) inter.push(bp[i]);
+      if (bw[i]) inter.push(bw[i]);
+    }
+    list = inter;
+  }
   if (profile.lowImpact) {
     list = list.map((e) => (e.lowImpactSwap ? EXERCISES[e.lowImpactSwap] : e));
   }
