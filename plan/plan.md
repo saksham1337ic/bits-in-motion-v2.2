@@ -1,83 +1,94 @@
-# BITS in Motion — Build Plan
+# BITS in Motion — Update Plan
 
-A high-energy, hostel-friendly AI fitness app that uses your webcam to watch your form and
-count reps in real time. Everything runs privately in your browser — no sign-in, no server,
-no camera footage ever leaves your device. Your profile, settings, and full workout history
-are stored locally in the browser.
+This round adds accounts, a public landing page, an AI meal guide, a Terms & Conditions
+page, and fixes two issues with exercise targets and exercise filtering.
 
-## Look & feel
-- "Cyber-Athletic" dark mode: deep charcoal background (#121212) with neon cyan (#00f3ff) accents.
-- Grid-based "Command Center" layouts, glowing SVG progress rings, subtle motion and hover effects.
-- Motivational, energetic tone for all coaching cues ("Go lower!", "Nice rep!", "Lock it in!").
+## 1. New entry flow (landing + sign-in)
 
-## Screens & flow
+Today the app opens straight into the setup questionnaire. That changes to:
 
-### 1. Onboarding (first launch)
-A quick questionnaire captured once and saved to the browser:
-- Age
-- Goal (Strength / Endurance / Fat Burn / Mobility)
-- Equipment (None / Backpack — backpack unlocks weighted variants)
-- "Low-impact" toggle
+- **Home ("/") becomes a public landing page** — an energetic marketing page with the
+  hero pitch, a short feature rundown (AI Camera Coach, Command Center, AI meal guide,
+  privacy-first), and two calls to action: **Sign in with Google** and **Continue as guest**.
+- **The dashboard (Command Center) moves to its own route** and is only reachable after a
+  person signs in or enters as a guest.
+- After entering, first-time users still see the quick questionnaire (Age, Goal, Equipment,
+  Low-impact); returning users skip straight to the dashboard.
 
-This drives which exercises are shown and how they're swapped (see below). It can be re-edited
-anytime from Settings.
+### Two ways in
+- **Sign in with Google** — one-tap Google login. No password to manage.
+- **Continue as guest** — no account, jump straight in.
 
-### 2. Command Center (dashboard) — 3-column layout
-Rich stats view:
-- Streak, total workouts, and total reps shown as glowing progress rings.
-- Per-exercise breakdown (best reps, total reps).
-- Weekly activity chart.
-- Personal bests and goal progress.
-- Quick-start tiles for each recommended exercise (filtered to the user's profile).
+## 2. Where data lives (this is the big one)
 
-### 3. Camera Coach (the core AI feature)
-- Turns on the webcam and tracks your body live, entirely on-device.
-- Counts reps using a form state machine (e.g. Standing → Down → Standing) driven by
-  3-point joint angles (hip–knee–ankle for squats, shoulder–elbow–wrist for push-ups).
-- Pauses counting automatically when your body isn't fully in frame, and prompts you to
-  reposition ("Step back — get your full body in view").
-- Real-time overlay on the video: current rep count, a live form/angle indicator, the current
-  phase, and coaching cues.
-- Each session's reps are saved to history when you finish.
+- **Guests:** everything (profile, settings, workout history, meal preferences) stays only
+  in the current browser, exactly like today. Clearing browser data erases it. No cross-device
+  access.
+- **Google-signed-in users:** everything is **cloud-synced** to their account, so their
+  history and settings follow them across devices and browsers.
+- **Guest → Google:** if someone has been using the app as a guest and then signs in with
+  Google, the plan is to **carry their existing local history up into their new cloud account**
+  (a one-time merge on first sign-in) so nothing is lost. *Assumption — flag if you'd rather
+  keep guest data and cloud data completely separate.*
+- Signing out of a Google account returns to the landing page; their data remains safe in the
+  cloud for next time.
 
-### 4. History
-Chronological log of every session (exercise, reps, date/time), with the option to clear it.
+## 3. AI meal / intake guide (new section)
 
-### 5. Settings
-Edit the onboarding profile anytime, toggle low-impact on/off, and manage stored data
-(clear history / reset app).
+A new **Fuel** section that gives **AI-powered, personalized meal suggestions** tuned to the
+person's fitness goal and situation:
 
-## Exercises & logic
+- Generates a suggested day of eating (e.g. breakfast / lunch / snack / dinner) with a short
+  rationale and rough protein/calorie ballpark, oriented to **hostel-friendly, budget,
+  minimal-cooking** realities.
+- Uses the person's **Goal** (from onboarding) plus a few quick inputs the guide will ask once:
+  **diet type** (veg / non-veg / egg-ok / vegan), optional **allergies/dislikes**, and an
+  optional **budget level**. *Assumption on these inputs — adjust if you want more or fewer.*
+- A **"regenerate"** option to get fresh ideas, and the ability to keep the latest plan saved
+  (in the browser for guests, in the cloud for signed-in users).
+- Runs on Emergent's built-in AI — **no API key or setup required from you.**
+- Shown as **general guidance, not dietary/medical advice**, with a visible disclaimer.
+- *Assumption:* this is a suggestion generator, not a calorie-logging tracker. Say the word if
+  you want per-meal logging with intake-vs-target tracking instead (larger effort).
 
-Launch library (a focused set, each with a low-impact alternative and a backpack-weighted variant):
+## 4. Terms & Conditions
 
-| Exercise | Live rep counting | High-impact? | Low-impact swap |
-|---|---|---|---|
-| Squats | Yes (hip-knee-ankle) | Moderate | Wall Sit (timed hold) |
-| Push-ups | Yes (shoulder-elbow-wrist) | No | Knee Push-ups |
-| Lunges | Yes (hip-knee-ankle) | Moderate | Glute Bridge |
-| Jumping Jacks | Yes (limb spread) | High | Step Jacks |
-| Plank | Timed hold | No | (already low-impact) |
+- A readable **Terms & Conditions page**, linked from a **footer** across the app (and on the
+  landing page). **No forced "I accept" step** — informational only, per your choice.
+- Content will cover the essentials for this app: it's a fitness aid not medical advice,
+  camera video is processed on-device and never uploaded, how data is stored (local for guests /
+  cloud for Google accounts), the AI meal suggestions disclaimer, and basic acceptable-use.
+  This is standard boilerplate tailored to the app, not legal advice.
 
-Selection logic:
-- Exercises are filtered by the chosen **Goal** (e.g. Strength favors squats/push-ups/lunges;
-  Fat Burn favors jumping jacks; Mobility favors lunges/glute bridge/plank).
-- If **Low-impact** is on, every high-impact exercise is automatically swapped for its
-  low-impact alternative in recommendations and quick-start tiles.
-- If **Equipment = Backpack**, weighted variants (e.g. "Backpack Squats") are surfaced.
+## 5. Fix: exercise target not showing correctly
+
+- The session goal you pick before a drill (e.g. 20 reps / 45s) will be shown clearly **during
+  the workout** — a dedicated **target progress indicator** (ring/bar) that fills as you go,
+  plus the "current / goal" readout, and the existing goal-reached celebration.
+- The chosen target will also be reflected where you start the drill so it's obvious what's set.
+
+## 6. Fix: same exercises regardless of goal/gear
+
+Two things get addressed:
+
+- **Correctness:** changing your **Goal** or **Equipment** (in onboarding or Settings) will
+  immediately update the recommended drills — no more stale/identical lists.
+- **Variety (expanded library):** the exercise library is **expanded** so each **Goal + Gear**
+  combination surfaces a genuinely different, larger set. For example, Strength vs Endurance vs
+  Fat Burn vs Mobility each lean on distinct movements, and choosing **Backpack** unlocks
+  weighted variants that actually change what's shown (not just a renamed label). The existing
+  drills stay; new ones are added around them.
+- The **Low-impact** toggle continues to swap high-impact movements for gentler alternatives,
+  now across the larger library.
 
 ## Assumptions
-- The pose/rep-counting model is loaded in the browser from a public CDN on first use; a short
-  one-time loading step is expected before the camera starts.
-- Exercise demos are shown as clean animated illustrations (looping SVG-style motion), not
-  real human video clips.
-- Rep-counting accuracy depends on lighting and camera framing; the coach guides the user to
-  position correctly but is not medically precise.
-- No accounts and no cloud backup — clearing browser data erases history (a manual export is
-  out of scope unless requested).
-- Works best on a desktop/laptop webcam; mobile support is best-effort.
+- Google sign-in uses Emergent's managed Google login (nothing for you to configure; no keys).
+- Camera behavior, privacy (on-device pose processing), and the Cyber-Athletic look & feel are
+  unchanged.
+- The AI meal guide produces suggestions only; it does not track logged intake unless you ask.
+- Guest local data is merged into the cloud account on first Google sign-in (see §2).
 
-## Out of scope (for now)
-- Social features, leaderboards, or sharing.
-- Cloud sync, user accounts, or multi-device history.
-- Custom/user-added exercises.
+## Out of scope (unless requested)
+- Email/password accounts or other social logins.
+- A full calorie/macro logging tracker with daily intake-vs-target history.
+- Sharing, social feeds, or leaderboards.

@@ -58,7 +58,7 @@ export default function History() {
           <Camera className="mx-auto h-10 w-10 text-slate-600" />
           <p className="mt-3 text-lg font-semibold text-slate-300">No sessions yet</p>
           <p className="text-sm text-slate-500">Your logged reps and holds will appear here.</p>
-          <Button onClick={() => navigate("/")} className="mt-5 bg-[#00f3ff] text-black font-bold hover:bg-[#00f3ff]/85">
+          <Button onClick={() => navigate("/app")} className="mt-5 bg-[#00f3ff] text-black font-bold hover:bg-[#00f3ff]/85">
             Start a workout
           </Button>
         </div>

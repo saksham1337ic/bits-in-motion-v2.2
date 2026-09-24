@@ -19,7 +19,7 @@ export default function Onboarding() {
 
   const submit = () => {
     setProfile({ age: Number(age) || 20, goal, equipment, lowImpact });
-    navigate("/");
+    navigate("/app");
   };
 
   return (

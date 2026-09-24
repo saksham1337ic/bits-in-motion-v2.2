@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Flame, Dumbbell, Repeat, Trophy, Camera, ChevronRight, Target, CalendarDays } from "lucide-react";
 import { BarChart, Bar, ResponsiveContainer, XAxis, Cell, Tooltip } from "recharts";
 import { useApp } from "@/context/AppContext";
-import { recommendedExercises, displayName, EXERCISES, GOALS } from "@/lib/exercises";
+import { recommendedExercises, displayName, libraryExercises, GOALS } from "@/lib/exercises";
 import { ProgressRing } from "@/components/ProgressRing";
 import { ExerciseDemo } from "@/components/ExerciseDemo";
 import { Badge } from "@/components/ui/badge";
@@ -215,8 +215,8 @@ export default function Dashboard() {
 
         <div className="hud-card p-5">
           <h4 className="text-lg font-bold uppercase tracking-tight text-slate-300">Full Library</h4>
-          <div className="mt-3 space-y-2">
-            {Object.values(EXERCISES).filter((e) => !e.variant).map((ex) => (
+          <div className="mt-3 space-y-2 max-h-[440px] overflow-y-auto pr-1">
+            {libraryExercises().filter((e) => e.gear === "none").map((ex) => (
               <button
                 key={ex.id}
                 onClick={() => navigate(`/coach/${ex.id}`)}

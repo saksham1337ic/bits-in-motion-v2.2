@@ -4,6 +4,7 @@ const defaultData = () => ({
   profile: null,
   history: [],
   settings: { sound: true, voice: false },
+  meal: null,
 });
 
 export function loadData() {

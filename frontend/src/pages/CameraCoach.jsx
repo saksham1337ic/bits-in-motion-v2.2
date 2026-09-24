@@ -248,7 +248,7 @@ export default function CameraCoach() {
     } else {
       toast.info("Nothing to log yet — no reps counted.");
     }
-    navigate("/");
+    navigate("/app");
   };
 
   useEffect(() => () => stopStream(), [stopStream]);
@@ -256,7 +256,7 @@ export default function CameraCoach() {
   return (
     <div>
       <button
-        onClick={() => { stopStream(); navigate("/"); }}
+        onClick={() => { stopStream(); navigate("/app"); }}
         data-testid="coach-back"
         className="mb-4 inline-flex items-center gap-1.5 text-sm text-slate-400 hover:text-[#00f3ff] transition-colors"
       >
@@ -410,6 +410,33 @@ export default function CameraCoach() {
               </ProgressRing>
             </div>
           </div>
+
+          {target && (
+            <div className="hud-card p-5" data-testid="target-card">
+              <div className="flex items-center gap-2 text-slate-300">
+                <Target className="h-4 w-4 text-[#00f3ff]" />
+                <h4 className="text-lg font-bold uppercase tracking-tight">Session Goal</h4>
+              </div>
+              <div className="mt-3 flex justify-center">
+                <ProgressRing
+                  value={isTimed ? hold : reps}
+                  max={target}
+                  size={132}
+                  stroke={10}
+                  color={targetReached ? "#10b981" : "#00f3ff"}
+                  data-testid="target-ring"
+                >
+                  <span className="font-mono text-3xl font-black tracking-tighter" style={{ color: targetReached ? "#10b981" : "#00f3ff" }}>
+                    {isTimed ? hold : reps}
+                  </span>
+                  <span className="font-mono text-[11px] text-slate-500">/ {isTimed ? `${target}s` : target}</span>
+                </ProgressRing>
+              </div>
+              {targetReached && (
+                <p className="mt-2 text-center text-sm font-bold text-[#10b981]">🎯 Goal reached — beast mode!</p>
+              )}
+            </div>
+          )}
 
           <div className="hud-card p-5">
             <h4 className="text-lg font-bold uppercase tracking-tight text-slate-300">Form Guide</h4>
