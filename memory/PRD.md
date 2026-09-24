@@ -45,6 +45,19 @@ and form feedback without gym equipment, accounts, or privacy concerns.
 - ✅ Animated SVG "human demo" figures per exercise. Cyber-Athletic dark theme throughout.
 - ✅ Verified end-to-end by testing agent (frontend 100%, no crashes; fake-webcam HUD renders).
 
+## Implemented (2026-06-24 — accounts, AI meal, landing, fixes)
+- ✅ Rep smoothing (EMA + full-ROM depth guard + 400ms cooldown), spoken coach (Web Speech API),
+  localStorage export/import backup, and session targets with target progress ring + celebration.
+- ✅ Public **Landing** page at `/` (Google sign-in + Continue as guest); Command Center moved to `/app`.
+- ✅ **Auth + storage split**: guests → localStorage; Google users → cloud-synced (FastAPI+Mongo).
+  Emergent Google OAuth with httpOnly session cookie; guest→cloud one-time merge on first sign-in; logout.
+- ✅ **AI Fuel guide** (`/fuel`): Emergent LLM generates a hostel-friendly daily meal plan (diet/allergies/budget),
+  regenerate, persisted (local for guests / cloud for users), with a not-medical-advice disclaimer.
+- ✅ **Terms & Conditions** page + app-wide **Footer** link (informational, no forced accept).
+- ✅ Fixed exercise filtering by Goal/Equipment (distinct sets per goal) and **expanded library** (~19 drills);
+  Backpack now surfaces weighted variants (interleaved backpack-first); low-impact swaps across the larger set.
+- ✅ Verified by testing agent: backend 100% (11/11 pytest), frontend 100% after backpack-ordering fix.
+
 ## Backlog / Remaining
 - P1: Reduce rep-count sensitivity to lighting/framing (angle smoothing / EMA filter).
 - P2: Optional workout export/import (JSON) since there is no cloud backup.
